@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<Import Project="../../common.props" />
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;net8.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	  <RootNamespace>Powerfly.Abp.EventBus.Redis</RootNamespace>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Volo.Abp.EventBus" Version="$(VoloAbpPackageVersion)" />
+	</ItemGroup>
+	
+  <ItemGroup>
+    <ProjectReference Include="..\Powerfly.Abp.Redis\Powerfly.Abp.Redis.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Powerfly.Abp.EventBus.Server.Tests": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
