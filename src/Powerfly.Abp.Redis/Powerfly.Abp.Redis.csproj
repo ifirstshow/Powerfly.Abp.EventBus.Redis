@@ -11,12 +11,12 @@
 
 	<ItemGroup>
 		<PackageReference Include="StackExchange.Redis" Version="2.7.10" />
-		<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="$(MicrosoftPackageVersion)" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Volo.Abp.Json" Version="$(VoloAbpPackageVersion)" />
 		<PackageReference Include="Volo.Abp.Threading" Version="$(VoloAbpPackageVersion)" />
 	</ItemGroup>
+
 
 </Project>

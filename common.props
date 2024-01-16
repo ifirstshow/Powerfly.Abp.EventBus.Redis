@@ -3,9 +3,14 @@
     <LangVersion>latest</LangVersion>
     <Version>8.0.0</Version>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
-	  <AbpProjectType>ms</AbpProjectType>
-	  <VoloAbpPackageVersion>8.0.0</VoloAbpPackageVersion>
-	  <MicrosoftPackageVersion>8.0.0</MicrosoftPackageVersion>
+	<AbpProjectType>ms</AbpProjectType>
+	<VoloAbpPackageVersion>8.0.0</VoloAbpPackageVersion>
+	<MicrosoftPackageVersion>8.0.0</MicrosoftPackageVersion>
+	<PackageLicenseExpression>MIT</PackageLicenseExpression>
+	<PackageReadmeFile>readme.md</PackageReadmeFile>
+	<RepositoryUrl>https://github.com/ifirstshow/Powerfly.Abp.EventBus.Redis.git</RepositoryUrl>
+	<PackageTags>abp;redis</PackageTags>
+	<Authors>ifirstshow</Authors>
   </PropertyGroup>
 
 	<ItemGroup>
@@ -14,6 +19,10 @@
 			<PrivateAssets>All</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
 		</PackageReference>
+	</ItemGroup>
+	
+	<ItemGroup>
+		<None Include="readme.md" Pack="true" PackagePath="\" />
 	</ItemGroup>
 	
   <Target Name="NoWarnOnRazorViewImportedTypeConflicts" BeforeTargets="RazorCoreCompile">

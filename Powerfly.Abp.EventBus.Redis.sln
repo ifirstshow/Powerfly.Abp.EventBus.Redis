@@ -15,6 +15,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Powerfly.Abp.EventBus.Tests
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Powerfly.Abp.EventBus.Tests.Client", "test\Powerfly.Abp.EventBus.Tests.Client\Powerfly.Abp.EventBus.Tests.Client.csproj", "{E64A61D3-DA0B-4E16-850B-CE38DA3D101E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "解决方案项", "解决方案项", "{BA441B10-2562-4183-BD5B-4EA08B82D537}"
+	ProjectSection(SolutionItems) = preProject
+		common.props = common.props
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
