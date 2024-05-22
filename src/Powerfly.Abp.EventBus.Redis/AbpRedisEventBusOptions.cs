@@ -1,6 +1,6 @@
 ﻿namespace Powerfly.Abp.EventBus.Redis
 {
-    public class PowerflyAbpRedisEventBusOptions
+    public class AbpRedisEventBusOptions
     {
         public string? ConnectionName { get; set; }
 

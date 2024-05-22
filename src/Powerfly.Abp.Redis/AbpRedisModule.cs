@@ -10,12 +10,12 @@ namespace Powerfly.Abp.Redis;
     typeof(AbpJsonModule),
     typeof(AbpThreadingModule)
 )]
-public class PowerflyAbpRedisModule : AbpModule
+public class AbpRedisModule : AbpModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         var configuration = context.Services.GetConfiguration();
-        Configure<PowerflyAbpRedisOptions>(configuration.GetSection("Redis"));
+        Configure<AbpRedisOptions>(configuration.GetSection("Redis"));
     }
 
     public override void OnApplicationShutdown(ApplicationShutdownContext context)

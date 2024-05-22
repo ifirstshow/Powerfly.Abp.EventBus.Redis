@@ -1,4 +1,6 @@
-﻿using Nito.AsyncEx;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Nito.AsyncEx;
 using StackExchange.Redis;
 using System.Collections.Concurrent;
 using System.Text;
@@ -13,6 +15,7 @@ namespace Powerfly.Abp.Redis
 
         public Consumer(IDatabase database, IRedisSerializer serializer, ConsumerConfig config)
         {
+            Logger = NullLogger<Consumer<TKey, TValue>>.Instance;
             Database = database;
             Serializer = serializer;
             Config = config;
@@ -23,6 +26,7 @@ namespace Powerfly.Abp.Redis
             receivedChannel = Channel.CreateUnbounded<ConsumeResult<TKey, TValue>>(new UnboundedChannelOptions { SingleReader = true, SingleWriter = true });
         }
 
+        public ILogger<Consumer<TKey, TValue>> Logger { get; set; }
         public string ConsumerName { get; }
         public IDatabase Database { get; }
         public IRedisSerializer Serializer { get; }
@@ -31,12 +35,9 @@ namespace Powerfly.Abp.Redis
 
         public async Task<ConsumeResult<TKey, TValue>> ConsumeAsync()
         {
-            if (await receivedChannel.Reader.WaitToReadAsync())
+            if (receivedChannel.Reader.TryRead(out var result))
             {
-                if (receivedChannel.Reader.TryRead(out var result))
-                {
-                    return result;
-                }
+                return result;
             }
             
             return ConsumeResult<TKey, TValue>.EOF;
@@ -69,37 +70,52 @@ namespace Powerfly.Abp.Redis
                 {
                     do
                     {
-                        var pendingMessages = await Database.StreamPendingMessagesAsync(
-                            topicName,
-                            Config.GroupName,
-                            10,
-                            Config.ConsumerName);
-
-                        if (!pendingMessages.IsNullOrEmpty())
+                        try
                         {
-                            var ids = pendingMessages.Where(t => t.IdleTimeInMilliseconds >= Config.ProcessingTimeout.TotalMilliseconds)
-                                .Where(t => t.MessageId != default)
-                                .Select(t => t.MessageId)
-                                .ToArray();
+                            var pendingMessages = await Database.StreamPendingMessagesAsync(
+                                topicName,
+                                Config.GroupName,
+                                10,
+                                Config.ConsumerName);
 
-                            if (ids.Length > 0)
+                            if (!pendingMessages.IsNullOrEmpty())
                             {
-                                var streamEntries = await Database.StreamClaimAsync(topicName, Config.GroupName, ConsumerName, Config.QueueDepth, ids);
-                                var messages = ToConsumeResults(streamEntries, topicName);
+                                var ids = pendingMessages.Where(t => t.IdleTimeInMilliseconds >= Config.ProcessingTimeout.TotalMilliseconds)
+                                    .Where(t => t.MessageId != default)
+                                    .Select(t => t.MessageId)
+                                    .ToArray();
 
-                                if (messages != null)
+                                if (ids.Length > 0)
                                 {
-                                    await WriteAsync(messages);
+                                    var streamEntries = await Database.StreamClaimAsync(topicName, Config.GroupName, ConsumerName, Config.QueueDepth, ids);
+                                    var messages = ToConsumeResults(streamEntries, topicName);
+
+                                    if (messages != null)
+                                    {
+                                        await WriteAsync(messages);
+                                    }
                                 }
                             }
-                        }
 
-                        if(Config.RedeliverInterval == TimeSpan.Zero ||  Config.ProcessingTimeout == TimeSpan.Zero)
+                            if (Config.RedeliverInterval == TimeSpan.Zero || Config.ProcessingTimeout == TimeSpan.Zero)
+                            {
+                                return;
+                            }
+
+                            await Task.Delay(Config.RedeliverInterval);
+                        }
+                        catch (RedisServerException ex)
                         {
-                            return;
+                            Logger.LogException(ex, LogLevel.Warning);
                         }
-
-                        await Task.Delay(Config.RedeliverInterval);
+                        catch (OperationCanceledException)
+                        {
+                            throw;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.LogException(ex, LogLevel.Error);
+                        }
                     }
                     while (!token.IsCancellationRequested);
                     
@@ -118,34 +134,49 @@ namespace Powerfly.Abp.Redis
                 {
                     while (!token.IsCancellationRequested)
                     {
-                        StreamEntry[] streamEntries;
-                        if (string.IsNullOrWhiteSpace(Config.GroupName))
+                        try
                         {
-                            streamEntries = await Database.StreamReadAsync(
-                                topicName,
-                                StreamPosition.NewMessages,
-                                Config.QueueDepth,
-                                CommandFlags.None);
+                            StreamEntry[] streamEntries;
+                            if (string.IsNullOrWhiteSpace(Config.GroupName))
+                            {
+                                streamEntries = await Database.StreamReadAsync(
+                                    topicName,
+                                    StreamPosition.NewMessages,
+                                    Config.QueueDepth,
+                                    CommandFlags.None);
+                            }
+                            else
+                            {
+                                streamEntries = await Database.StreamReadGroupAsync(
+                                    topicName,
+                                    Config.GroupName,
+                                    ConsumerName,
+                                    StreamPosition.NewMessages,
+                                    Config.QueueDepth,
+                                    false,
+                                    CommandFlags.None);
+                            }
+
+                            var messages = ToConsumeResults(streamEntries, topicName);
+
+                            await WriteAsync(messages);
+
+                            if (Config.FetchInterval > TimeSpan.Zero)
+                            {
+                                await Task.Delay(Config.FetchInterval);
+                            }
                         }
-                        else
+                        catch (RedisServerException ex)
                         {
-                            streamEntries = await Database.StreamReadGroupAsync(
-                                topicName,
-                                Config.GroupName,
-                                ConsumerName,
-                                StreamPosition.NewMessages,
-                                Config.QueueDepth,
-                                false,
-                                CommandFlags.None);
+                            Logger.LogException(ex, LogLevel.Warning);
                         }
-
-                        var messages = ToConsumeResults(streamEntries, topicName);
-
-                        await WriteAsync(messages);
-
-                        if (Config.FetchInterval > TimeSpan.Zero)
+                        catch (OperationCanceledException)
                         {
-                            await Task.Delay(Config.FetchInterval);
+                            throw;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.LogException(ex, LogLevel.Error);
                         }
                     }
                 }

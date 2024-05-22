@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <LangVersion>latest</LangVersion>
-    <Version>8.0.0</Version>
+    <Version>8.0.1</Version>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
 	<AbpProjectType>ms</AbpProjectType>
 	<VoloAbpPackageVersion>8.0.0</VoloAbpPackageVersion>
@@ -10,6 +10,7 @@
 	<RepositoryUrl>https://github.com/ifirstshow/Powerfly.Abp.EventBus.Redis.git</RepositoryUrl>
 	<PackageTags>abp;redis</PackageTags>
 	<Authors>ifirstshow</Authors>
+	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
 
 	<ItemGroup>

@@ -2,7 +2,7 @@
 
 namespace Powerfly.Abp.Redis;
 
-public class PowerflyAbpRedisOptions
+public class AbpRedisOptions
 {
     public RedisConnections Connections { get; }
 
@@ -10,7 +10,19 @@ public class PowerflyAbpRedisOptions
 
     public Action<ConsumerConfig>? ConfigureConsumer { get; set; }
 
-    public PowerflyAbpRedisOptions()
+    public string Configuration
+    {
+        get
+        {
+            return Connections.Default.Configuration;
+        }
+        set
+        {
+            Connections.Default.Configuration = value;
+        }
+    }
+
+    public AbpRedisOptions()
     {
         Connections = new RedisConnections();
     }

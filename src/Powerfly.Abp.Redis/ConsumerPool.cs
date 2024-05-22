@@ -14,7 +14,7 @@ public class ConsumerPool : IConsumerPool, ISingletonDependency
 {
     public IRedisSerializer Serializer { get; }
 
-    protected PowerflyAbpRedisOptions Options { get; }
+    protected AbpRedisOptions Options { get; }
 
     protected ConcurrentDictionary<string, Lazy<IConsumer<string, byte[]>>> Consumers { get; }
 
@@ -24,7 +24,7 @@ public class ConsumerPool : IConsumerPool, ISingletonDependency
 
     private bool _isDisposed;
 
-    public ConsumerPool(IRedisSerializer serializer, IOptions<PowerflyAbpRedisOptions> options)
+    public ConsumerPool(IRedisSerializer serializer, IOptions<AbpRedisOptions> options)
     {
         Options = options.Value;
 
@@ -100,12 +100,12 @@ public class ConsumerPool : IConsumerPool, ISingletonDependency
         poolDisposeStopwatch.Stop();
 
         Logger.LogInformation(
-            $"Disposed Kafka Consumer Pool ({Consumers.Count} consumers in {poolDisposeStopwatch.Elapsed.TotalMilliseconds:0.00} ms).");
+            $"Disposed Redis Consumer Pool ({Consumers.Count} consumers in {poolDisposeStopwatch.Elapsed.TotalMilliseconds:0.00} ms).");
 
         if (poolDisposeStopwatch.Elapsed.TotalSeconds > 5.0)
         {
             Logger.LogWarning(
-                $"Disposing Kafka Consumer Pool got time greather than expected: {poolDisposeStopwatch.Elapsed.TotalMilliseconds:0.00} ms.");
+                $"Disposing Redis Consumer Pool got time greather than expected: {poolDisposeStopwatch.Elapsed.TotalMilliseconds:0.00} ms.");
         }
 
         Consumers.Clear();

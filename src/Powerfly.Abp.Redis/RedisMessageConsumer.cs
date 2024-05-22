@@ -21,7 +21,7 @@ public class RedisMessageConsumer : IRedisMessageConsumer, ITransientDependency,
 
     protected IExceptionNotifier ExceptionNotifier { get; }
 
-    protected PowerflyAbpRedisOptions Options { get; }
+    protected AbpRedisOptions Options { get; }
 
     protected AbpAsyncTimer Timer { get; }
 
@@ -38,7 +38,7 @@ public class RedisMessageConsumer : IRedisMessageConsumer, ITransientDependency,
     public RedisMessageConsumer(
         IConsumerPool consumerPool,
         IExceptionNotifier exceptionNotifier,
-        IOptions<PowerflyAbpRedisOptions> options,
+        IOptions<AbpRedisOptions> options,
         IProducerPool producerPool,
         AbpAsyncTimer timer)
     {
@@ -121,6 +121,10 @@ public class RedisMessageConsumer : IRedisMessageConsumer, ITransientDependency,
         {
             while (true)
             {
+                if (Consumer == null)
+                {
+                    break;
+                }
                 try
                 {
                     var consumeResult = await Consumer.ConsumeAsync();
@@ -136,6 +140,11 @@ public class RedisMessageConsumer : IRedisMessageConsumer, ITransientDependency,
                 {
                     Logger.LogException(ex, LogLevel.Warning);
                     await ExceptionNotifier.NotifyAsync(ex, logLevel: LogLevel.Warning);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogException(ex, LogLevel.Error);
+                    await ExceptionNotifier.NotifyAsync(ex, logLevel: LogLevel.Error);
                 }
             }
         }, TaskCreationOptions.LongRunning);

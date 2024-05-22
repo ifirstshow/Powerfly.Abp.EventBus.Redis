@@ -12,7 +12,7 @@ namespace Powerfly.Abp.EventBus.Tests.Server;
 
 [DependsOn(
     typeof(AbpAutofacModule),
-    typeof(PowerflyAbpEventBusRedisModule)
+    typeof(AbpEventBusRedisModule)
 )]
 public class TestsModule : AbpModule
 {

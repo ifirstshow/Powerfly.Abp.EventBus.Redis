@@ -13,19 +13,19 @@ public class ProducerPool : IProducerPool, ISingletonDependency
 {
     protected IRedisSerializer Serializer { get; }
 
-    protected PowerflyAbpRedisOptions Options { get; }
+    protected AbpRedisOptions Options { get; }
 
     protected ConcurrentDictionary<string, Lazy<IProducer<string, byte[]>>> Producers { get; }
 
     protected TimeSpan TotalDisposeWaitDuration { get; set; } = TimeSpan.FromSeconds(10);
-    
+
     protected TimeSpan DefaultTransactionsWaitDuration { get; set; } = TimeSpan.FromSeconds(30);
 
     public ILogger<ProducerPool> Logger { get; set; }
 
     private bool _isDisposed;
 
-    public ProducerPool(IRedisSerializer serializer, IOptions<PowerflyAbpRedisOptions> options)
+    public ProducerPool(IRedisSerializer serializer, IOptions<AbpRedisOptions> options)
     {
         Serializer = serializer;
         Options = options.Value;
@@ -79,7 +79,7 @@ public class ProducerPool : IProducerPool, ISingletonDependency
         foreach (var producer in Producers.Values)
         {
             var poolItemDisposeStopwatch = Stopwatch.StartNew();
-        
+
             try
             {
                 producer.Value.Dispose();
@@ -87,23 +87,23 @@ public class ProducerPool : IProducerPool, ISingletonDependency
             catch
             {
             }
-        
+
             poolItemDisposeStopwatch.Stop();
-        
+
             remainingWaitDuration = remainingWaitDuration > poolItemDisposeStopwatch.Elapsed
                 ? remainingWaitDuration.Subtract(poolItemDisposeStopwatch.Elapsed)
                 : TimeSpan.Zero;
         }
-        
+
         poolDisposeStopwatch.Stop();
-        
+
         Logger.LogInformation(
-            $"Disposed Kafka Producer Pool ({Producers.Count} producers in {poolDisposeStopwatch.Elapsed.TotalMilliseconds:0.00} ms).");
-        
+            $"Disposed Redis Producer Pool ({Producers.Count} producers in {poolDisposeStopwatch.Elapsed.TotalMilliseconds:0.00} ms).");
+
         if (poolDisposeStopwatch.Elapsed.TotalSeconds > 5.0)
         {
             Logger.LogWarning(
-                $"Disposing Kafka Producer Pool got time greather than expected: {poolDisposeStopwatch.Elapsed.TotalMilliseconds:0.00} ms.");
+                $"Disposing Redis Producer Pool got time greather than expected: {poolDisposeStopwatch.Elapsed.TotalMilliseconds:0.00} ms.");
         }
 
         Producers.Clear();

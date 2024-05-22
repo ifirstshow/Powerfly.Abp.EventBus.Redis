@@ -8,14 +8,14 @@ namespace Powerfly.Abp.EventBus.Redis
 {
     [DependsOn(
         typeof(AbpEventBusModule),
-        typeof(PowerflyAbpRedisModule))]
-    public class PowerflyAbpEventBusRedisModule : AbpModule
+        typeof(AbpRedisModule))]
+    public class AbpEventBusRedisModule : AbpModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var configuration = context.Services.GetConfiguration();
 
-            Configure<PowerflyAbpRedisEventBusOptions>(configuration.GetSection("Redis:EventBus"));
+            Configure<AbpRedisEventBusOptions>(configuration.GetSection("Redis:EventBus"));
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

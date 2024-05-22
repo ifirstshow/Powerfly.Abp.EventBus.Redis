@@ -20,7 +20,7 @@ namespace Powerfly.Abp.EventBus.Redis;
 [ExposeServices(typeof(IDistributedEventBus), typeof(RedisDistributedEventBus))]
 public class RedisDistributedEventBus : DistributedEventBusBase, ISingletonDependency
 {
-    protected PowerflyAbpRedisEventBusOptions AbpRedisEventBusOptions { get; }
+    protected AbpRedisEventBusOptions AbpRedisEventBusOptions { get; }
     protected IRedisMessageConsumerFactory MessageConsumerFactory { get; }
     protected IRedisSerializer Serializer { get; }
     protected IProducerPool ProducerPool { get; }
@@ -32,7 +32,7 @@ public class RedisDistributedEventBus : DistributedEventBusBase, ISingletonDepen
         IServiceScopeFactory serviceScopeFactory,
         ICurrentTenant currentTenant,
         IUnitOfWorkManager unitOfWorkManager,
-        IOptions<PowerflyAbpRedisEventBusOptions> abpRedisEventBusOptions,
+        IOptions<AbpRedisEventBusOptions> abpRedisEventBusOptions,
         IRedisMessageConsumerFactory messageConsumerFactory,
         IOptions<AbpDistributedEventBusOptions> abpDistributedEventBusOptions,
         IRedisSerializer serializer,
