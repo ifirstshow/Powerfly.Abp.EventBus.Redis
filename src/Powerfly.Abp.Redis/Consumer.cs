@@ -39,7 +39,7 @@ namespace Powerfly.Abp.Redis
             {
                 return result;
             }
-            
+
             return ConsumeResult<TKey, TValue>.EOF;
         }
 
@@ -101,8 +101,6 @@ namespace Powerfly.Abp.Redis
                             {
                                 return;
                             }
-
-                            await Task.Delay(Config.RedeliverInterval);
                         }
                         catch (RedisServerException ex)
                         {
@@ -116,9 +114,16 @@ namespace Powerfly.Abp.Redis
                         {
                             Logger.LogException(ex, LogLevel.Error);
                         }
+                        finally
+                        {
+                            if (Config.RedeliverInterval > TimeSpan.Zero)
+                            {
+                                await Task.Delay(Config.RedeliverInterval);
+                            }
+                        }
                     }
                     while (!token.IsCancellationRequested);
-                    
+
                 }
                 catch (OperationCanceledException)
                 {
@@ -160,11 +165,6 @@ namespace Powerfly.Abp.Redis
                             var messages = ToConsumeResults(streamEntries, topicName);
 
                             await WriteAsync(messages);
-
-                            if (Config.FetchInterval > TimeSpan.Zero)
-                            {
-                                await Task.Delay(Config.FetchInterval);
-                            }
                         }
                         catch (RedisServerException ex)
                         {
@@ -177,6 +177,13 @@ namespace Powerfly.Abp.Redis
                         catch (Exception ex)
                         {
                             Logger.LogException(ex, LogLevel.Error);
+                        }
+                        finally
+                        {
+                            if (Config.FetchInterval > TimeSpan.Zero)
+                            {
+                                await Task.Delay(Config.FetchInterval);
+                            }
                         }
                     }
                 }
@@ -241,10 +248,10 @@ namespace Powerfly.Abp.Redis
 
         public void Unsubscribe()
         {
-            while(TopicsDictionary.Count > 0)
+            while (TopicsDictionary.Count > 0)
             {
                 var keys = TopicsDictionary.Keys.ToArray();
-                foreach ( var key in keys)
+                foreach (var key in keys)
                 {
                     if (TopicsDictionary.TryRemove(key, out var source))
                     {

@@ -35,6 +35,8 @@ public class RedisMessageConsumer : IRedisMessageConsumer, ITransientDependency,
 
     protected string TopicName { get; private set; } = default!;
 
+    private CancellationTokenSource? cancellationTokenSource;
+
     public RedisMessageConsumer(
         IConsumerPool consumerPool,
         IExceptionNotifier exceptionNotifier,
@@ -79,7 +81,8 @@ public class RedisMessageConsumer : IRedisMessageConsumer, ITransientDependency,
         if (Consumer == null)
         {
             await CreateTopicAsync();
-            Consume();
+            cancellationTokenSource = new CancellationTokenSource();
+            Consume(cancellationTokenSource.Token);
         }
     }
 
@@ -112,14 +115,14 @@ public class RedisMessageConsumer : IRedisMessageConsumer, ITransientDependency,
         }
     }
 
-    protected virtual void Consume()
+    protected virtual void Consume(CancellationToken token)
     {
         Consumer = ConsumerPool.Get(GroupName, ConnectionName);
         Consumer.Subscribe(TopicName);
 
         Task.Factory.StartNew(async () =>
         {
-            while (true)
+            while (!token.IsCancellationRequested)
             {
                 if (Consumer == null)
                 {
@@ -145,6 +148,10 @@ public class RedisMessageConsumer : IRedisMessageConsumer, ITransientDependency,
                 {
                     Logger.LogException(ex, LogLevel.Error);
                     await ExceptionNotifier.NotifyAsync(ex, logLevel: LogLevel.Error);
+                }
+                finally
+                {
+                    await Task.Delay(5);
                 }
             }
         }, TaskCreationOptions.LongRunning);
@@ -183,6 +190,12 @@ public class RedisMessageConsumer : IRedisMessageConsumer, ITransientDependency,
 
         try
         {
+            if (cancellationTokenSource != null)
+            {
+                cancellationTokenSource.Cancel();
+                cancellationTokenSource.Dispose();
+            }
+
             Consumer.Unsubscribe();
             Consumer.Close();
             Consumer.Dispose();
